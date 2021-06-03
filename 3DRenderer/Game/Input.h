@@ -10,14 +10,21 @@ public:
 	void ClearMouseInputs();
 	void CheckMouseInputs();
 
-	bool keyRightPressed = false;
-	bool keyLeftPressed = false;
-	bool keyUpPressed = false;
-	bool keyDownPressed = false;
+	bool keyWPressed = false;
+	bool keySPressed = false;
+	bool keyDPressed = false;
+	bool keyAPressed = false;
 	bool keySpacePressed = false;
+
+	bool keyUpArrowPressed = false;
+	bool keyDownArrowPressed = false;
+	bool keyRightArrowPressed = false;
+	bool keyLeftArrowPressed = false;
 
 	bool keyLShiftPressed = false;
 
 	bool mouseLeftPressed = false;
 	bool mouseRightPressed = false;
+
+	sf::Keyboard::Key lastKeyPressed;
 };

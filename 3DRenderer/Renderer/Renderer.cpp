@@ -39,8 +39,8 @@ void Renderer::UpdateScene(std::shared_ptr<Scene> in_scene) {
 	m_mWorld = Math::MultiplyMatrixMatrix(m_mWorld, m_mTranslation); // Transform by translation
 	
 	// Create "Point At" Matrix for camera, or "Look At" matrix
-	tVector3 up = { 0,1,0 };
-	tVector3 target = { 0,0,1 };
+	tVector3 up = { 0, 1, 0 };
+	tVector3 target = { 0, 0, 1 };
 	target = Vector_Add(cameraPos, cameraDir);
 	
 	// Make view matrix from camera
@@ -66,7 +66,7 @@ void Renderer::RenderShape(Shape& in_shape, std::shared_ptr<Scene> in_scene) {
 		// Get Ray from Triangle to camera
 		tVector3 cameraRay = Vector_Sub(tri.points[0], cameraPos);
 		auto normal = tri.GetNormal();
-		tri.color = std::max(100.0f, DotProduct(Normalize(light), tVector3(1, 1, 1)) * 100);
+		tri.color = 100 * std::acos(Math::DotProduct(light, tri.GetNormal()) / (Math::Magnitude(light) * Math::Magnitude(tri.GetNormal())));
 
 
 		// If ray is aligned with normal, then Triangle is visible
@@ -86,8 +86,6 @@ void Renderer::RenderShape(Shape& in_shape, std::shared_ptr<Scene> in_scene) {
 			for (int n = 0; n < clippedTriangles; n++) {
 				// Project triangles from 3D --> 2D
 				triProjected = Math::MultiplyMatrixTriangle(m_mProjectionMat, clipped[n]);
-
-				std::cout << m_mProjectionMat.mat[0][0] << std::endl;
 
 				// Scale into view, we moved the normalising into cartesian space
 				// out of the matrix.vector function from the previous videos, so
@@ -199,11 +197,16 @@ void Renderer::RenderShape(Shape& in_shape, std::shared_ptr<Scene> in_scene) {
 			triangle[2].texCoords = sf::Vector2f(t.coords[2].x / t.coords[2].w, t.coords[2].y / t.coords[2].w);
 
 			//Set color
-			//triangle[0].color = sf::Color(0, 100, 0);
-			//triangle[1].color = sf::Color(0, 100, 0);
-			//triangle[2].color = sf::Color(0, 100, 0);
+			triangle[0].color = sf::Color(t.color, t.color, t.color);
+			triangle[1].color = sf::Color(t.color, t.color, t.color);
+			triangle[2].color = sf::Color(t.color, t.color, t.color);
 
-			window->draw(triangle, &*m_texture);
+			//std::cout << t.color << std::endl;
+			
+			//if (in_shape.m_texture) { window->draw(triangle, &*m_texture); }
+			//else { window->draw(triangle); }
+
+			window->draw(triangle);
 		}
 	}
 };
@@ -211,61 +214,66 @@ void Renderer::RenderShape(Shape& in_shape, std::shared_ptr<Scene> in_scene) {
 ////////////////////////////////// Loading Shapes ////////////////////////////////////
 
 Math::Mesh Renderer::LoadFromObj(const std::string& in_fileLocation, bool hasTexture) {
+	std::ifstream file(in_fileLocation);
+	assert(file.is_open() && "Could not open file");
+
 	tMesh out_mesh;
+
+	// Local cache of verts
 	std::vector<tVector3> verts;
 	std::vector<tVector2> texs;
-	std::vector<tTriangle> tris;
-	std::ifstream file(in_fileLocation);
 
-	if (!file.is_open()) {
-		std::cout << "File at: " << in_fileLocation << ", not found" << std::endl;
-		return out_mesh;
-	}
-
-	//looping over each line
-	while (!file.eof()) {
+	while (!file.eof())
+	{
 		char line[128];
 		file.getline(line, 128);
 
-		std::strstream string;
-		string << line;
+		std::strstream stream;
+		stream << line;
 
 		char junk;
 
-		//collecting verts
-		if (line[0] == 'v') {
-			if (line[1] == 't') {
-				tVector2 vert;
-				string >> junk >> vert.x >> vert.y;
-				texs.push_back(vert);
+		if (line[0] == 'v')
+		{
+			if (line[1] == 't')
+			{
+				tVector2 v;
+				stream >> junk >> junk >> v.x >> v.y;
+				// A little hack for the spyro texture
+				//v.u = 1.0f - v.u;
+				//v.v = 1.0f - v.v;
+				texs.push_back(v);
 			}
-			else {
-				tVector3 vert;
-				string >> junk >> vert.x >> vert.y >> vert.z;
-				verts.push_back(vert);
+			else
+			{
+				tVector3 v;
+				stream >> junk >> v.x >> v.y >> v.z;
+				verts.push_back(v);
 			}
 		}
 
-		//collecting triangles
-		if (!hasTexture) {
-			if (line[0] == 'f') {
-				int f[3];
-				string >> junk >> f[0] >> f[1] >> f[2];
-				out_mesh.tris.push_back(tTriangle(verts[f[0] - 1], verts[f[1] - 1], verts[f[2] - 1]));
-			}
-		}
-		else {
+		if (!hasTexture)
+		{
 			if (line[0] == 'f')
 			{
-				string >> junk;
+				int f[3];
+				stream >> junk >> f[0] >> f[1] >> f[2];
+				out_mesh.tris.push_back({ verts[f[0] - 1], verts[f[1] - 1], verts[f[2] - 1] });
+			}
+		}
+		else
+		{
+			if (line[0] == 'f')
+			{
+				stream >> junk;
 
-				std::string tokens[6];
+				std::string tokens[32];
 				int nTokenCount = -1;
 
 
-				while (!string.eof())
+				while (!stream.eof())
 				{
-					char c = string.get();
+					char c = stream.get();
 					if (c == ' ' || c == '/')
 						nTokenCount++;
 					else
@@ -274,14 +282,13 @@ Math::Mesh Renderer::LoadFromObj(const std::string& in_fileLocation, bool hasTex
 
 				tokens[nTokenCount].pop_back();
 
-
 				tTriangle buffer(verts[stoi(tokens[0]) - 1], verts[stoi(tokens[2]) - 1], verts[stoi(tokens[4]) - 1]);
 				buffer.coords[0] = { texs[stoi(tokens[1]) - 1] };
 				buffer.coords[1] = { texs[stoi(tokens[3]) - 1] };
 				buffer.coords[2] = { texs[stoi(tokens[5]) - 1] };
 
-				tris.push_back(buffer);
-			};
+				out_mesh.tris.push_back(buffer);
+			}
 		}
 	}
 

@@ -26,6 +26,7 @@
     <ClCompile Include="Object\Entity.cpp" />
     <ClCompile Include="Object\Object.cpp" />
     <ClCompile Include="Object\Shapes.cpp" />
+    <ClCompile Include="Object\Snake.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="Renderer\Scene.cpp" />
   </ItemGroup>
@@ -37,6 +38,7 @@
     <ClInclude Include="Object\Object.h" />
     <ClInclude Include="Object\ObjectGuard.h" />
     <ClInclude Include="Object\Shapes.h" />
+    <ClInclude Include="Object\Snake.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Renderer\Scene.h" />
   </ItemGroup>

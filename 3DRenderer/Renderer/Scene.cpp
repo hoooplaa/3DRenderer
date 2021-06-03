@@ -17,7 +17,7 @@ void Scene::Initialize() {
 	m_cameraYaw = 0.0f;
 	m_cameraPitch = 0.0f;
 
-	tVector3 target = { 0,0,1 };
+	tVector3 target = { 0, 0, 1 };
 	tMatrix4x4 mCameraRotationY = Math::MakeRotationMatrixY(m_cameraYaw);
 	tMatrix4x4 mCameraRotationX = Math::MakeRotationMatrixX(m_cameraPitch);
 
@@ -33,7 +33,13 @@ void Scene::Destroy() {
 
 void Scene::Update(double in_dt) {
 	// Update camera dir
-	tVector3 target = { 0,0,1 };
+	m_theta += in_dt / 10;
+
+	m_light = m_constLight;
+	tMatrix4x4 mLightRotationY = Math::MakeRotationMatrixY(Math::Radians(m_theta)); // Rotate lighting ( for cool effect :) )
+	m_light = Math::MultiplyMatrixVector(mLightRotationY, m_light);
+
+	tVector3 target = { 0, 0, 1 };
 	tMatrix4x4 mCameraRotationY = Math::MakeRotationMatrixY(m_cameraYaw);
 	tMatrix4x4 mCameraRotationX = Math::MakeRotationMatrixX(m_cameraPitch);
 

@@ -1,18 +1,8 @@
 #include "Game.h"
 
-// Get shading to work
-
 // Make inputs a switch statment w hashing
 
 // Add camera class
-
-// Make shapes center at top left corner
-
-// Add specifc shape classes
-
-// Make input class singleton
-
-// Possibly make shape part of object and hierachy to shapes
 
 // Make matrix/vectors templates
 
@@ -22,13 +12,29 @@
 
 // Figure out how to handle shapes with textures
 
-// Change projection matrix based on window size
-
 // Add convention to math functions
 
-// Make renderer init w scene
-
 // Add depth buffer
+
+// Make input class static or singleton
+
+// Change projection matrix on window resize
+
+// Add tic setting
+
+// Learn Rodrigues Rotation Formula
+
+// Think of a better way to do the inputs
+
+// Add normal functions and projection functions to math
+
+// Clean up the headers
+
+// Think of way to only write one create shape function that works for all shapes
+
+// Actually use spawn w setup function
+
+// Add snake create function
 
 Game::Game() {
 
@@ -47,15 +53,18 @@ void Game::Initialize() {
 	assert(m_robotoBoldFont.loadFromFile("C://Users//Alex Haurin//source//repos//3DRenderer//3DRenderer//Assets//Fonts//Roboto-Light.ttf") && "Couldn't load roboto light font");
 	m_fpsText.setFont(m_robotoBoldFont);
 	m_fpsText.setPosition(sf::Vector2f(10, m_scene->m_window->getSize().y - 50));
-	
-	Cuboid board(tVector3(0, 0, 0), 10, 1, 10);
-	Cube cube(tVector3(0, 0, 0), 10);
-	//m_shapes.push_back(board);
-	m_shapes.push_back(cube);
+
+	// Populate scene
+	std::shared_ptr<Cuboid> board = CreateGameCuboid(tVector3(0, 0, 0), 10, 1, 10);
+	m_snake = std::make_shared<Snake>();
+	m_snake->Initialize();
+
+	m_shapes.push_back(board);
+	m_entities.push_back(m_snake);
 
 	//m_comanderCodyHelmet = m_renderer.LoadFromObj("Assets/Objects/CodyHelmet.obj");
-	m_comanderCodyHelmet.mesh = m_scene->m_renderer->LoadFromObj("C://Users//Alex Haurin//source//repos//3DRenderer//3DRenderer//Assets//Objects//Alfa.obj");
-};
+	//m_comanderCodyHelmet.mesh = m_scene->m_renderer->LoadFromObj("C://Users//Alex Haurin//source//repos//3DRenderer//3DRenderer//Assets//Objects//Fox.obj", true);
+}
 
 void Game::Destroy() {
 	Object::Destroy();
@@ -97,7 +106,6 @@ void Game::HandleEvents() {
 			Destroy();
 			break;
 		case sf::Event::Resized:
-			//m_scene->m_renderer.SetProjectionMatrix(Math::MakeProjectionMatrix(0.1f, 1000.0f, 90.0f, m_scene->GetWindow()->getSize().x / m_scene->GetWindow()->getSize().y));
 			break;
 		case sf::Event::KeyPressed:
 			//m_inputBool = true;
@@ -119,7 +127,8 @@ void Game::HandleEvents() {
 void Game::Update(const double in_dt) {
 	m_scene->Update(in_dt);
 	
-	for (auto& shape : m_shapes) { shape.Update(in_dt); }
+	for (auto& shape : m_shapes) { shape->Update(in_dt); }
+	for (auto& entity : m_entities) { entity->Update(in_dt); }
 
 	m_mousePos = sf::Vector2f(sf::Mouse::getPosition(*m_scene->GetWindow()));
 	auto mouseMovement = m_mousePos - m_pastMousePos;
@@ -129,24 +138,31 @@ void Game::Update(const double in_dt) {
 
 	auto cameraDir = Normalize(m_scene->m_cameraDir);
 	auto cameraPos = m_scene->m_cameraPos;
+
+	// Camera movement
 	if (m_inputState.keySpacePressed) { // up/down
 		m_scene->MoveCamera(tVector3(0, 0.03 * in_dt, 0));
 	}
 	if (m_inputState.keyLShiftPressed) {
 		m_scene->MoveCamera(tVector3(0, -0.03 * in_dt, 0));
 	}
-	if (m_inputState.keyUpPressed) { // forward/back
+	if (m_inputState.keyWPressed) { // forward/back
 		m_scene->MoveCamera(Vector_Mul(cameraDir, 0.03 * in_dt));
 	}
-	if (m_inputState.keyDownPressed) {
+	if (m_inputState.keySPressed) {
 		m_scene->MoveCamera(Vector_Mul(cameraDir, -0.03 * in_dt));
 	}
-	if (m_inputState.keyLeftPressed) { // strafing
+	if (m_inputState.keyAPressed) { // strafing
 		m_scene->MoveCamera(Vector_Mul(tVector3(cameraDir.z, 0, -cameraDir.x), 0.03 * in_dt));
 	}
-	if (m_inputState.keyRightPressed) {
+	if (m_inputState.keyDPressed) {
 		m_scene->MoveCamera(Vector_Mul(tVector3(cameraDir.z, 0, -cameraDir.x), -0.03 * in_dt));
 	}
+	// Snake movement
+	if (m_inputState.keyUpArrowPressed) { m_inputState.lastKeyPressed = sf::Keyboard::Key::Up; }
+	if (m_inputState.keyDownArrowPressed) { m_inputState.lastKeyPressed = sf::Keyboard::Key::Down; }
+	if (m_inputState.keyRightArrowPressed) { m_inputState.lastKeyPressed = sf::Keyboard::Key::Right; }
+	if (m_inputState.keyLeftArrowPressed) { m_inputState.lastKeyPressed = sf::Keyboard::Key::Left; }
 
 	m_scene->m_renderer->UpdateScene(m_scene);
 
@@ -156,7 +172,8 @@ void Game::Update(const double in_dt) {
 void Game::Draw() {
 	m_scene->Clear(sf::Color::Black);
 
-	for (auto& shape : m_shapes) { m_scene->Render(shape); }
+	for (auto& shape : m_shapes) { shape->Draw(m_scene); }
+	for (auto& entity : m_entities) { entity->Draw(m_scene); }
 
 	//m_scene->Render(m_comanderCodyHelmet);
 
@@ -165,7 +182,19 @@ void Game::Draw() {
 
 
 std::shared_ptr<Scene> Game::CreateScene(const tVector2& in_dimensions, const std::string& in_name) {
-	auto out_scene = SpawnWithSetup<Scene>(shared_from_this(), {}, in_dimensions, in_name);
+	auto out_scene = Object::SpawnWithSetup<Scene>(shared_from_this(), {}, in_dimensions, in_name);
 
 	return out_scene;
+}
+
+std::shared_ptr<Shape> Game::CreateGameShape() {
+	auto out_shape = Object::SpawnWithSetup<Shape>(shared_from_this(), {});
+
+	return out_shape;
+}
+
+std::shared_ptr<Cuboid> Game::CreateGameCuboid(const tVector3& in_position, float in_sideWidth, float in_sideHeight, float in_sideDepth) {
+	auto out_cuboid = Object::SpawnWithSetup<Cuboid>(shared_from_this(), {}, in_position, in_sideWidth, in_sideHeight, in_sideDepth);
+
+	return out_cuboid;
 }

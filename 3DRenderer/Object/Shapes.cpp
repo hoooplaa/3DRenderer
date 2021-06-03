@@ -1,5 +1,6 @@
 #include "Shapes.h"
-#include "../Renderer/Renderer.h"
+
+#include "../Renderer/Scene.h"
 
 //////////////////////////////////// SHAPE ///////////////////////////////////////////////////
 
@@ -35,16 +36,46 @@ Shape::~Shape() {
 
 };
 
+void Shape::Intialize() {
+	Object::Initialize();
+
+}
+
+void Shape::Destroy() {
+
+	Object::Destroy();
+}
+
 void Shape::Update(const double in_dt) {
 
 };
 
 void Shape::Draw(std::shared_ptr<Scene> in_scene) {
-	
+	in_scene->Render(*this);
+}
+
+void Shape::Move(const tVector3& in_mov) {
+	tVector3 newPos(m_position.x + in_mov.x, m_position.y + in_mov.y, m_position.z + in_mov.z);
+
+	SetPosition(newPos);
 }
 
 void Shape::SetPosition(const tVector3& in_position) {
+	tVector3 dif(in_position.x - m_position.x, in_position.y - m_position.y, in_position.z - m_position.z);
 
+	for (auto& t : mesh.tris) {
+		t.points[0].x += dif.x;
+		t.points[0].y += dif.y;
+		t.points[0].z += dif.z;
+		
+		t.points[1].x += dif.x;
+		t.points[1].y += dif.y;
+		t.points[1].z += dif.z;
+		
+		t.points[2].x += dif.x;
+		t.points[2].y += dif.y;
+		t.points[2].z += dif.z;
+	}
 };
 
 void Shape::SetRotation(const tVector3& in_rotation) {
@@ -139,7 +170,17 @@ Cube::~Cube() {
 
 };
 
-////////////////////////////////////////////////// CUBE ///////////////////////////////////////////////////////
+void Cube::Initialize() {
+	Shape::Initialize();
+
+}
+
+void Cube::Destroy() {
+
+	Shape::Destroy();
+}
+
+////////////////////////////////////////////////// CUBOID ///////////////////////////////////////////////////////
 
 Cuboid::Cuboid() {
 
@@ -182,3 +223,13 @@ Cuboid::Cuboid(const tVector3& in_position, float in_sideWidth, float in_sideHei
 Cuboid::~Cuboid() {
 
 };
+
+void Cuboid::Initialize() {
+	Shape::Initialize();
+
+}
+
+void Cuboid::Destroy() {
+
+	Shape::Destroy();
+}
