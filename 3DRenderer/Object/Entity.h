@@ -26,6 +26,7 @@ public:
 
 	virtual void Move(const tVector3& in_vec);
 
+	std::shared_ptr<Shape> GetShape() const { return m_shape; }
 	tVector3 GetPosition() const { return m_shape->GetPosition(); }
 	void SetPosition(const tVector3& in_pos) { m_shape->SetPosition(in_pos); }
 	void SetDimensions(const tVector3& in_dim) { m_shape->SetDimensions(in_dim); }

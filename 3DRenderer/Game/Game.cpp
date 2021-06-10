@@ -43,7 +43,6 @@ void Game::Initialize() {
 	m_shapes.push_back(board);
 	m_entities.push_back(m_snake);
 
-	//m_comanderCodyHelmet = m_renderer.LoadFromObj("Assets/Objects/CodyHelmet.obj");
 	//m_comanderCodyHelmet.mesh = m_scene->m_renderer->LoadFromObj("C://Users//Alex Haurin//source//repos//3DRenderer//3DRenderer//Assets//Objects//Fox.obj", true);
 }
 
@@ -108,6 +107,8 @@ void Game::HandleEvents() {
 
 void Game::Update(const float in_dt) {
 	m_scene->Update(in_dt);
+
+	//std::cout << m_scene->m_cameraPos << std::endl;
 	
 	// Update entities
 	for (auto& shape : m_shapes) { shape->Update(in_dt); }
@@ -170,14 +171,71 @@ std::shared_ptr<Snake> Game::CreateSnake() {
 		in_snake->SetGame(shared_from_base<Game>());
 	});
 
-	out_snake->SetPosition({ 0, 0, 0 });
-	out_snake->SetDimensions({ m_blockSize, m_blockSize, m_blockSize });
+	// Quick fix to bug i'm working on
+	tVector3 pos = out_snake->GetShape()->GetPosition();
+	tVector3 dim = out_snake->GetShape()->GetDimensions();
+
+	out_snake->GetShape()->mesh.tris = {
+		//SOUTH																						 
+		{ pos,								        { pos.x, pos.y + dim.y, pos.z },                  { pos.x + dim.x, pos.y + dim.y, pos.z } },
+		{ { pos.x, pos.y, pos.z },                  { pos.x + dim.x, pos.y + dim.y, pos.z },          { pos.x + dim.x, pos.y, pos.z } },
+
+		//EAST								    	 									  			 
+		{ { pos.x + dim.x, pos.y, pos.z },          { pos.x + dim.x, pos.y + dim.y, pos.z },          { pos.x + dim.x, pos.y + dim.y, pos.z + dim.z } },
+		{ { pos.x + dim.x, pos.y, pos.z },          { pos.x + dim.x, pos.y + dim.y, pos.z + dim.z },  { pos.x + dim.x, pos.y, pos.z + dim.z } },
+
+		//North										 									  			 
+		{ { pos.x + dim.x, pos.y, pos.z + dim.z },  { pos.x + dim.x, pos.y + dim.y, pos.z + dim.z },  { pos.x, pos.y + dim.y, pos.z + dim.z } },
+		{ { pos.x + dim.x, pos.y, pos.z + dim.z },  { pos.x, pos.y + dim.y, pos.z + dim.z },          { pos.x, pos.y, pos.z + dim.z } },
+
+		//WEST										 									  			 
+		{ { pos.x, pos.y, pos.z + dim.z },		    { pos.x, pos.y + dim.y, pos.z + dim.z },          { pos.x, pos.y + dim.y, pos.z } },
+		{ { pos.x, pos.y, pos.z + dim.z },		    { pos.x, pos.y + dim.y, pos.z },                  { pos.x, pos.y, pos.z } },
+
+		//TOP										 									  			 
+		{ { pos.x, pos.y + dim.y, pos.z },          { pos.x, pos.y + dim.y, pos.z + dim.z },          { pos.x + dim.x, pos.y + dim.y, pos.z + dim.z } },
+		{ { pos.x, pos.y + dim.y, pos.z },          { pos.x + dim.x, pos.y + dim.y, pos.z + dim.z },  { pos.x + dim.x, pos.y + dim.y, pos.z } },
+
+		//BOTTOM									 									  			 
+		{ { pos.x + dim.x, pos.y, pos.z + dim.z },  { pos.x, pos.y, pos.z + dim.z },                  { pos.x, pos.y, pos.z } },
+		{ { pos.x + dim.x, pos.y, pos.z + dim.z },  { pos.x, pos.y, pos.z },                          { pos.x + dim.x, pos.y, pos.z } },
+	};
 
 	return out_snake;
 }
 
 std::shared_ptr<Cuboid> Game::CreateGameCuboid(const tVector3& in_position, const tVector3& in_dimensions) {
 	auto out_cuboid = Object::SpawnWithSetup<Cuboid>(shared_from_this(), {}, in_position, in_dimensions);
+
+	// Quick fix to bug i'm working on
+	tVector3 pos = out_cuboid->GetPosition();
+	tVector3 dim = out_cuboid->GetDimensions();
+
+	out_cuboid->mesh.tris = {
+		//SOUTH																						 
+		{ pos,								        { pos.x, pos.y + dim.y, pos.z },                  { pos.x + dim.x, pos.y + dim.y, pos.z } },
+		{ { pos.x, pos.y, pos.z },                  { pos.x + dim.x, pos.y + dim.y, pos.z },          { pos.x + dim.x, pos.y, pos.z } },
+
+		//EAST								    	 									  			 
+		{ { pos.x + dim.x, pos.y, pos.z },          { pos.x + dim.x, pos.y + dim.y, pos.z },          { pos.x + dim.x, pos.y + dim.y, pos.z + dim.z } },
+		{ { pos.x + dim.x, pos.y, pos.z },          { pos.x + dim.x, pos.y + dim.y, pos.z + dim.z },  { pos.x + dim.x, pos.y, pos.z + dim.z } },
+
+		//North										 									  			 
+		{ { pos.x + dim.x, pos.y, pos.z + dim.z },  { pos.x + dim.x, pos.y + dim.y, pos.z + dim.z },  { pos.x, pos.y + dim.y, pos.z + dim.z } },
+		{ { pos.x + dim.x, pos.y, pos.z + dim.z },  { pos.x, pos.y + dim.y, pos.z + dim.z },          { pos.x, pos.y, pos.z + dim.z } },
+
+		//WEST										 									  			 
+		{ { pos.x, pos.y, pos.z + dim.z },		    { pos.x, pos.y + dim.y, pos.z + dim.z },          { pos.x, pos.y + dim.y, pos.z } },
+		{ { pos.x, pos.y, pos.z + dim.z },		    { pos.x, pos.y + dim.y, pos.z },                  { pos.x, pos.y, pos.z } },
+
+		//TOP										 									  			 
+		{ { pos.x, pos.y + dim.y, pos.z },          { pos.x, pos.y + dim.y, pos.z + dim.z },          { pos.x + dim.x, pos.y + dim.y, pos.z + dim.z } },
+		{ { pos.x, pos.y + dim.y, pos.z },          { pos.x + dim.x, pos.y + dim.y, pos.z + dim.z },  { pos.x + dim.x, pos.y + dim.y, pos.z } },
+
+		//BOTTOM									 									  			 
+		{ { pos.x + dim.x, pos.y, pos.z + dim.z },  { pos.x, pos.y, pos.z + dim.z },                  { pos.x, pos.y, pos.z } },
+		{ { pos.x + dim.x, pos.y, pos.z + dim.z },  { pos.x, pos.y, pos.z },                          { pos.x + dim.x, pos.y, pos.z } },
+	};
 
 	return out_cuboid;
 }

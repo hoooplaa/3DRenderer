@@ -34,12 +34,13 @@ public:
 
 	tVector3 GetPosition() const { return m_position; }
 	void SetPosition(const tVector3& in_position);
+	tVector3 GetDimensions() const { return m_dimensions; }
 	void SetDimensions(const tVector3& in_dim);
 
 	tMesh mesh;
 
 protected:
-	tTexture m_pTexture = nullptr;
+	std::shared_ptr<sf::Texture> m_pTexture = std::make_shared<sf::Texture>();
 
 	tVector3 m_dimensions = {1, 1, 1 };
 	tVector3 m_position = { 0, 0, 0 };

@@ -116,7 +116,7 @@ Cuboid::Cuboid(const tVector3& in_position, const tVector3& in_dimensions) {
 Cuboid::Cuboid(const tVector3& in_position, const tVector3& in_dimensions, std::shared_ptr<tTexture> in_pTexture) {
 	m_position = in_position;
 	m_dimensions = in_dimensions;
-	m_pTexture = in_pTexture;
+	//m_pTexture = in_pTexture;
 }
 																			    
 Cuboid::~Cuboid() {
