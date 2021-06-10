@@ -26,12 +26,12 @@ public:
 
 	void Run();
 	void HandleEvents();
-	void Update(const double dt);
+	void Update(const float dt);
 	void Draw();
 
 	std::shared_ptr<Scene> CreateScene(const tVector2& in_dimensions, const std::string& in_name);
-	std::shared_ptr<Shape> CreateGameShape();
-	std::shared_ptr<Cuboid> CreateGameCuboid(const tVector3& in_position, float in_sideWidth, float in_sideHeight, float in_sideDepth);
+	std::shared_ptr<Snake> CreateSnake();
+	std::shared_ptr<Cuboid> CreateGameCuboid(const tVector3& in_position, const tVector3& in_dimensions);
 
 	double GetFrameRate() const { return m_frameRate; }
 	void   SetFrameRate(double in_frameRate) {
@@ -40,18 +40,21 @@ public:
 	}
 
 private:
-	double dt = 1.0;
+	float dt = 1.0;
 	std::chrono::milliseconds m_targetTime = std::chrono::milliseconds(0);
 	double m_frameRate = 60.0;
 	float m_theta = 0.0f;
 
-	std::shared_ptr<Scene> m_scene;
 	InputHandler m_inputState;
+
+	std::shared_ptr<Scene> m_scene;
+	const float m_blockSize = 1.0f;
+	const tVector3 m_boardSize = { 10.0f, 10.0f, 0.0f };
 	
+	std::shared_ptr<Snake> m_snake;
 	std::vector<std::shared_ptr<Shape>> m_shapes;
 	std::vector<std::shared_ptr<Entity>> m_entities;
 
-	std::shared_ptr<Snake> m_snake;
 	std::shared_ptr<Shape> m_comanderCodyHelmet;
 
 	sf::Text m_fpsText;

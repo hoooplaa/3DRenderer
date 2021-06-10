@@ -18,6 +18,7 @@ struct Shape : public Object {
 public:
 	using tVector2 = Math::Vector2;
 	using tVector3 = Math::Vector3;
+	using tTriangle = Math::Triangle;
 	using tMesh = Math::Mesh;
 	using tTexture = std::shared_ptr<sf::Texture>;
 
@@ -33,31 +34,23 @@ public:
 
 	tVector3 GetPosition() const { return m_position; }
 	void SetPosition(const tVector3& in_position);
-	void SetRotation(const tVector3& in_rotation);
+	void SetDimensions(const tVector3& in_dim);
 
-public:
 	tMesh mesh;
-	tTexture m_texture = nullptr;
 
-	tVector3 m_position;
+protected:
+	tTexture m_pTexture = nullptr;
+
+	tVector3 m_dimensions = {1, 1, 1 };
+	tVector3 m_position = { 0, 0, 0 };
 	tVector3 m_ticMovement; //tracks movement and rotation since last update so we only have to update the tris once per frame
-};
-
-struct Cube : public Shape {
-public:
-	Cube();
-	Cube(const tVector3& in_position, float in_sideLength) ;
-	Cube(const tVector3& in_position, float in_sideLength, tTexture in_cubedTexture);
-	~Cube();
-
-	void Initialize();
-	void Destroy();
 };
 
 struct Cuboid : public Shape {
 public:
 	Cuboid();
-	Cuboid(const tVector3& in_position, float in_sideWidth, float in_sideHeight, float in_sideDepth);
+	Cuboid(const tVector3& in_position, const tVector3& in_dimensions);
+	Cuboid(const tVector3& in_position, const tVector3& in_dimensions, std::shared_ptr<tTexture> in_pTexture);
 	~Cuboid();
 
 	void Initialize();

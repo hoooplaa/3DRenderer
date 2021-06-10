@@ -12,7 +12,7 @@ Scene::~Scene() {
 void Scene::Initialize() {
 	m_window = std::make_shared<sf::RenderWindow>(sf::VideoMode(m_dimensions.x, m_dimensions.y), m_name);
 
-	m_renderer->Initialize(shared_from_base<Scene>());
+	Renderer::Initialize(shared_from_base<Scene>());
 
 	m_cameraYaw = 0.0f;
 	m_cameraPitch = 0.0f;
@@ -45,6 +45,9 @@ void Scene::Update(double in_dt) {
 
 	m_cameraDir = MultiplyMatrixVector(mCameraRotationX, target);
 	m_cameraDir = MultiplyMatrixVector(mCameraRotationY, m_cameraDir);
+
+	// Update renderer with new camera data
+	Renderer::UpdateScene(shared_from_base<Scene>());
 };
 
 void Scene::Draw() {
@@ -60,7 +63,7 @@ void Scene::Display() {
 }
 
 void Scene::Render(Shape& in_shape) {
-	m_renderer->RenderShape(in_shape, shared_from_base<Scene>());
+	Renderer::RenderShape(in_shape, shared_from_base<Scene>());
 }
 
 void Scene::RotateCameraYaw(float in_yaw) {
@@ -78,5 +81,5 @@ void Scene::RotateCameraPitch(float in_pitch) {
 }
 
 void Scene::MoveCamera(const tVector3& in_movement) {
-	m_cameraPos = Vector_Add(m_cameraPos, in_movement);
+	m_cameraPos = VectorAdd(m_cameraPos, in_movement);
 }

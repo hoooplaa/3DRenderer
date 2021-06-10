@@ -77,10 +77,10 @@ namespace Math {
 	float Degrees(float in_radians);
 
 	///////////////////////////////////// Vector Math //////////////////////////
-	Vector3 Vector_Add(const Vector3& v1, const Vector3& v2);
-	Vector3 Vector_Sub(const Vector3& v1, const Vector3& v2);
-	Vector3 Vector_Mul(const Vector3& v1, float m);
-	Vector3 Vector_Div(const Vector3& v1, float d);
+	Vector3 VectorAdd(const Vector3& v1, const Vector3& v2);
+	Vector3 VectorSub(const Vector3& v1, const Vector3& v2);
+	Vector3 VectorMul(const Vector3& v1, float m);
+	Vector3 VectorDiv(const Vector3& v1, float d);
 
 	float DotProduct(const Vector3& v1, const Vector3& v2);
 	float Magnitude(const Vector3& v);
@@ -90,12 +90,11 @@ namespace Math {
 	////////////////////////////// Matrix Math //////////////////////////////////////////
 	Vector3 MultiplyMatrixVector(const Matrix4x4& m, const Vector3 v);
 	Matrix4x4 MultiplyMatrixMatrix(const Matrix4x4& m1, const Matrix4x4& m2);
+	Matrix4x4 MatrixQuickInverse(const Matrix4x4& m);
 
-	Matrix4x4 Matrix_PointAt(const Vector3& pos, const Vector3& target, const Vector3& up);
-	Matrix4x4 Matrix_QuickInverse(const Matrix4x4& m);
-
-	Matrix4x4 Matrix_MakeIdentity();
-	Matrix4x4 Matrix_MakeTranslation(float x, float y, float z);
+	Matrix4x4 MakePointAtMatrix(const Vector3& pos, const Vector3& target, const Vector3& up);
+	Matrix4x4 MakeIdentityMatrix();
+	Matrix4x4 MakeTranslationMatrix(float x, float y, float z);
 	Matrix4x4 MakeProjectionMatrix(float zNear, float zFar, float FOVDegrees, float AspectRatio);
 
 	Matrix4x4 MakeRotationMatrixX(float in_thetaRad);
@@ -106,6 +105,6 @@ namespace Math {
 
 	Triangle MultiplyMatrixTriangle(const Matrix4x4& in_mat, const Triangle& in_tri);
 
-	int Triangle_ClipAgainstPlane(Vector3 plane_p, Vector3 plane_n, Triangle& in_tri, Triangle& out_tri1, Triangle& out_tri2);
-	Vector3 Vector_IntersectPlane(Vector3& plane_p, Vector3& plane_n, Vector3& lineStart, Vector3& lineEnd, float& t);
+	int TriangleClipAgainstPlane(Vector3 plane_p, Vector3 plane_n, Triangle& in_tri, Triangle& out_tri1, Triangle& out_tri2);
+	Vector3 VectorIntersectPlane(Vector3& plane_p, Vector3& plane_n, Vector3& lineStart, Vector3& lineEnd, float& t);
 }

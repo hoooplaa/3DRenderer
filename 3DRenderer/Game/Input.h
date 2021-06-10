@@ -2,29 +2,31 @@
 
 #include <SFML/Graphics.hpp>
 
-class InputHandler {
-public:
-	void ClearKeyboardInputs();
-	void CheckKeyboardInputs();
+//namespace InputHandler {
+	class InputHandler {
+	public:
+		void ClearKeyboardInputs();
+		void CheckKeyboardInputs();
 
-	void ClearMouseInputs();
-	void CheckMouseInputs();
+		void ClearMouseInputs();
+		void CheckMouseInputs();
 
-	bool keyWPressed = false;
-	bool keySPressed = false;
-	bool keyDPressed = false;
-	bool keyAPressed = false;
-	bool keySpacePressed = false;
+		bool keyWPressed = false;
+		bool keySPressed = false;
+		bool keyDPressed = false;
+		bool keyAPressed = false;
+		bool keySpacePressed = false;
 
-	bool keyUpArrowPressed = false;
-	bool keyDownArrowPressed = false;
-	bool keyRightArrowPressed = false;
-	bool keyLeftArrowPressed = false;
+		bool keyUpArrowPressed = false;
+		bool keyDownArrowPressed = false;
+		bool keyRightArrowPressed = false;
+		bool keyLeftArrowPressed = false;
 
-	bool keyLShiftPressed = false;
+		bool keyLShiftPressed = false;
+		bool keyRShiftPressed = false;
+		bool keyCtrlPressed = false;
 
-	bool mouseLeftPressed = false;
-	bool mouseRightPressed = false;
-
-	sf::Keyboard::Key lastKeyPressed;
-};
+		bool mouseLeftPressed = false;
+		bool mouseRightPressed = false;
+	};
+//}

@@ -39,7 +39,7 @@ public:
 	tVector3 m_cameraPos = { 0.0f, 0.0f, 0.0f };
 	float m_cameraYaw = 0;
 	float m_cameraPitch = 0;
-	tVector3 m_cameraDir; // Direction vector along the direction camera points
+	tVector3 m_cameraDir; // Vector along the direction camera points
 
 	const tVector3 m_constLight = { 1.0f, -1.0f, 0.0f };
 	tVector3 m_light = { 1.0f, -1.0f, 0.0f };
@@ -47,6 +47,4 @@ public:
 	float m_theta = 0.0f;
 
 	std::string m_name;
-
-	std::shared_ptr<Renderer> m_renderer = std::make_shared<Renderer>();
 };

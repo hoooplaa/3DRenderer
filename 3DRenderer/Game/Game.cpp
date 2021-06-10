@@ -1,20 +1,13 @@
 #include "Game.h"
 
-// Make inputs a switch statment w hashing
+/////////////////////////// Shit i gotta do /////////////////////////
+// Make inputs a switch statment w hashing?
 
 // Add camera class
 
 // Make matrix/vectors templates
 
-// Actually understand functions in math.h
-
-// dont forget about w (automatically initializing it to 1 and not when u initialize the cube, might be ap orblem)
-
-// Figure out how to handle shapes with textures
-
-// Add convention to math functions
-
-// Add depth buffer
+// Add depth buffer?
 
 // Make input class static or singleton
 
@@ -24,17 +17,9 @@
 
 // Learn Rodrigues Rotation Formula
 
-// Think of a better way to do the inputs
-
-// Add normal functions and projection functions to math
+// Use/learn quarternions for camera movement/rotation
 
 // Clean up the headers
-
-// Think of way to only write one create shape function that works for all shapes
-
-// Actually use spawn w setup function
-
-// Add snake create function
 
 Game::Game() {
 
@@ -50,14 +35,10 @@ void Game::Initialize() {
 	m_scene = CreateScene(tVector2(1200, 800), "Scene");
 
 	assert(m_robotoBoldFont.loadFromFile("C://Users//Alex Haurin//source//repos//3DRenderer//3DRenderer//Assets//Fonts//Roboto-Bold.ttf") && "Couldn't load roboto bold font");
-	assert(m_robotoBoldFont.loadFromFile("C://Users//Alex Haurin//source//repos//3DRenderer//3DRenderer//Assets//Fonts//Roboto-Light.ttf") && "Couldn't load roboto light font");
-	m_fpsText.setFont(m_robotoBoldFont);
-	m_fpsText.setPosition(sf::Vector2f(10, m_scene->m_window->getSize().y - 50));
 
 	// Populate scene
-	std::shared_ptr<Cuboid> board = CreateGameCuboid(tVector3(0, 0, 0), 10, 1, 10);
-	m_snake = std::make_shared<Snake>();
-	m_snake->Initialize();
+	std::shared_ptr<Cuboid> board = CreateGameCuboid(tVector3(0, 0, 0), tVector3(m_boardSize.x * m_blockSize, m_blockSize, m_boardSize.y * m_blockSize));
+	m_snake = CreateSnake();
 
 	m_shapes.push_back(board);
 	m_entities.push_back(m_snake);
@@ -67,6 +48,7 @@ void Game::Initialize() {
 }
 
 void Game::Destroy() {
+	
 	Object::Destroy();
 };
 
@@ -124,54 +106,50 @@ void Game::HandleEvents() {
 	}
 }
 
-void Game::Update(const double in_dt) {
+void Game::Update(const float in_dt) {
 	m_scene->Update(in_dt);
 	
+	// Update entities
 	for (auto& shape : m_shapes) { shape->Update(in_dt); }
 	for (auto& entity : m_entities) { entity->Update(in_dt); }
 
-	m_mousePos = sf::Vector2f(sf::Mouse::getPosition(*m_scene->GetWindow()));
+	// Mouse movement
+	m_mousePos = sf::Vector2f(sf::Mouse::getPosition(*m_scene->GetWindow())); // Calculate the change in mouse pos from last fram to use for camera pointing
 	auto mouseMovement = m_mousePos - m_pastMousePos;
+	m_pastMousePos = m_mousePos;
 
-	m_scene->RotateCameraYaw(mouseMovement.x / 1000);
-	m_scene->RotateCameraPitch(mouseMovement.y / 1000);
+	// Camera movement
+	m_scene->RotateCameraYaw(in_dt * (mouseMovement.x / 10000)); // Rotate camera using change in mouse movement
+	m_scene->RotateCameraPitch(in_dt * (mouseMovement.y / 10000));
 
-	auto cameraDir = Normalize(m_scene->m_cameraDir);
+	auto cameraDir = Normalize(m_scene->m_cameraDir); // Calculate camera dir/pos to use in movement input
 	auto cameraPos = m_scene->m_cameraPos;
 
 	// Camera movement
-	if (m_inputState.keySpacePressed) { // up/down
-		m_scene->MoveCamera(tVector3(0, 0.03 * in_dt, 0));
-	}
-	if (m_inputState.keyLShiftPressed) {
-		m_scene->MoveCamera(tVector3(0, -0.03 * in_dt, 0));
-	}
-	if (m_inputState.keyWPressed) { // forward/back
-		m_scene->MoveCamera(Vector_Mul(cameraDir, 0.03 * in_dt));
-	}
-	if (m_inputState.keySPressed) {
-		m_scene->MoveCamera(Vector_Mul(cameraDir, -0.03 * in_dt));
-	}
-	if (m_inputState.keyAPressed) { // strafing
-		m_scene->MoveCamera(Vector_Mul(tVector3(cameraDir.z, 0, -cameraDir.x), 0.03 * in_dt));
-	}
-	if (m_inputState.keyDPressed) {
-		m_scene->MoveCamera(Vector_Mul(tVector3(cameraDir.z, 0, -cameraDir.x), -0.03 * in_dt));
-	}
+	if (m_inputState.keySpacePressed) { m_scene->MoveCamera(tVector3(0, 0.03 * in_dt, 0)); } // Up/down
+	else if (m_inputState.keyLShiftPressed) { m_scene->MoveCamera(tVector3(0, -0.03 * in_dt, 0)); }
+	else if (m_inputState.keyWPressed) { m_scene->MoveCamera(VectorMul(cameraDir, 0.03 * in_dt)); } // Forawrd/back
+	else if (m_inputState.keySPressed) { m_scene->MoveCamera(VectorMul(cameraDir, -0.03 * in_dt)); }
+	else if (m_inputState.keyAPressed) { m_scene->MoveCamera(VectorMul(tVector3(cameraDir.z, 0, -cameraDir.x), 0.03 * in_dt)); } // Strafing
+	else if (m_inputState.keyDPressed) { m_scene->MoveCamera(VectorMul(tVector3(cameraDir.z, 0, -cameraDir.x), -0.03 * in_dt)); }
 	// Snake movement
-	if (m_inputState.keyUpArrowPressed) { m_inputState.lastKeyPressed = sf::Keyboard::Key::Up; }
-	if (m_inputState.keyDownArrowPressed) { m_inputState.lastKeyPressed = sf::Keyboard::Key::Down; }
-	if (m_inputState.keyRightArrowPressed) { m_inputState.lastKeyPressed = sf::Keyboard::Key::Right; }
-	if (m_inputState.keyLeftArrowPressed) { m_inputState.lastKeyPressed = sf::Keyboard::Key::Left; }
+	if (m_inputState.keyUpArrowPressed) { m_snake->SetDirection({ 0, 0, 1 }); }
+	else if (m_inputState.keyDownArrowPressed) { m_snake->SetDirection({ 0, 0, -1 }); }
+	else if (m_inputState.keyRightArrowPressed) { m_snake->SetDirection({ -1, 0, 0 }); }
+	else if (m_inputState.keyLeftArrowPressed) { m_snake->SetDirection({ 1, 0, 0 }); }
+	else if (m_inputState.keyCtrlPressed) { m_snake->SetDirection({ 0, 1, 0 }); }
+	else if (m_inputState.keyRShiftPressed) { m_snake->SetDirection({ 0, -1, 0 }); }
 
-	m_scene->m_renderer->UpdateScene(m_scene);
-
-	m_pastMousePos = sf::Vector2f(sf::Mouse::getPosition(*m_scene->GetWindow()));
+	if (m_snake->CanMove()) { // Move snake in current dir if snake has waited long enough
+		m_snake->Move(Math::VectorMul(m_snake->GetDirection(), m_blockSize));
+		m_snake->ResetMovementTimer();
+	}
 };
 
 void Game::Draw() {
 	m_scene->Clear(sf::Color::Black);
 
+	// Draw entities
 	for (auto& shape : m_shapes) { shape->Draw(m_scene); }
 	for (auto& entity : m_entities) { entity->Draw(m_scene); }
 
@@ -187,14 +165,19 @@ std::shared_ptr<Scene> Game::CreateScene(const tVector2& in_dimensions, const st
 	return out_scene;
 }
 
-std::shared_ptr<Shape> Game::CreateGameShape() {
-	auto out_shape = Object::SpawnWithSetup<Shape>(shared_from_this(), {});
+std::shared_ptr<Snake> Game::CreateSnake() {
+	auto out_snake = Object::SpawnWithSetup<Snake>(shared_from_this(), [this](Snake* in_snake) {
+		in_snake->SetGame(shared_from_base<Game>());
+	});
 
-	return out_shape;
+	out_snake->SetPosition({ 0, 0, 0 });
+	out_snake->SetDimensions({ m_blockSize, m_blockSize, m_blockSize });
+
+	return out_snake;
 }
 
-std::shared_ptr<Cuboid> Game::CreateGameCuboid(const tVector3& in_position, float in_sideWidth, float in_sideHeight, float in_sideDepth) {
-	auto out_cuboid = Object::SpawnWithSetup<Cuboid>(shared_from_this(), {}, in_position, in_sideWidth, in_sideHeight, in_sideDepth);
+std::shared_ptr<Cuboid> Game::CreateGameCuboid(const tVector3& in_position, const tVector3& in_dimensions) {
+	auto out_cuboid = Object::SpawnWithSetup<Cuboid>(shared_from_this(), {}, in_position, in_dimensions);
 
 	return out_cuboid;
 }

@@ -66,8 +66,8 @@ namespace Math {
 	Vector3 Triangle::GetNormal() {
 		Vector3 out_normal, line1, line2;
 
-		line1 = Vector_Sub(points[1], points[0]);
-		line2 = Vector_Sub(points[2], points[0]);
+		line1 = VectorSub(points[1], points[0]);
+		line2 = VectorSub(points[2], points[0]);
 
 		out_normal = CrossProduct(line1, line2);
 		out_normal = Normalize(out_normal);
@@ -84,19 +84,19 @@ namespace Math {
 	}
 
 	///////////////////////// Vector Math /////////////////////////////
-	Vector3 Vector_Add(const Vector3& v1, const Vector3& v2) {
+	Vector3 VectorAdd(const Vector3& v1, const Vector3& v2) {
 		return { v1.x + v2.x, v1.y + v2.y, v1.z + v2.z };
 	}
 
-	Vector3 Vector_Sub(const Vector3& v1, const Vector3& v2) {
+	Vector3 VectorSub(const Vector3& v1, const Vector3& v2) {
 		return { v1.x - v2.x, v1.y - v2.y, v1.z - v2.z };
 	}
 
-	Vector3 Vector_Mul(const Vector3& v1, float m) {
+	Vector3 VectorMul(const Vector3& v1, float m) {
 		return { v1.x * m, v1.y * m, v1.z * m };
 	}
 
-	Vector3 Vector_Div(const Vector3& v1, float d) {
+	Vector3 VectorDiv(const Vector3& v1, float d) {
 		return { v1.x / d, v1.y / d, v1.z / d };
 	}
 
@@ -143,21 +143,8 @@ namespace Math {
 		return out_mat;
 	}
 
-	Triangle MultiplyMatrixTriangle(const Matrix4x4& in_mat, const Triangle& in_tri) {
-		Triangle out_tri;
-
-		out_tri.points[0] = MultiplyMatrixVector(in_mat, in_tri.points[0]);
-		out_tri.points[1] = MultiplyMatrixVector(in_mat, in_tri.points[1]);
-		out_tri.points[2] = MultiplyMatrixVector(in_mat, in_tri.points[2]);
-		out_tri.coords[0] = in_tri.coords[0];
-		out_tri.coords[1] = in_tri.coords[1];
-		out_tri.coords[2] = in_tri.coords[2];
-		out_tri.color = in_tri.color;
-
-		return out_tri;
-	}
-
-	Matrix4x4 Matrix_PointAt(const Vector3& pos, const Vector3& target, const Vector3& up) {
+	// Make
+	Matrix4x4 MakePointAtMatrix(const Vector3& pos, const Vector3& target, const Vector3& up) {
 		// Calculate new forward direction
 		Vector3 newForward, newUp;
 		newForward.x = target.x - pos.x;
@@ -167,7 +154,7 @@ namespace Math {
 		newForward = Normalize(newForward);
 
 		// Calculate new Up direction
-		Vector3 a = Vector_Mul(newForward, DotProduct(up, newForward));
+		Vector3 a = VectorMul(newForward, DotProduct(up, newForward));
 		newUp.x = up.x - a.x;
 		newUp.y = up.y - a.y;
 		newUp.z = up.z - a.z;
@@ -187,7 +174,7 @@ namespace Math {
 		return out_mat;
 	}
 
-	Matrix4x4 Matrix_QuickInverse(const Matrix4x4& m) // Only for Rotation/Translation Matrices
+	Matrix4x4 MatrixQuickInverse(const Matrix4x4& m) // Only for Rotation/Translation Matrices
 	{
 		Matrix4x4 out_mat;
 		out_mat.mat[0][0] = m.mat[0][0]; out_mat.mat[0][1] = m.mat[1][0]; out_mat.mat[0][2] = m.mat[2][0]; out_mat.mat[0][3] = 0.0f;
@@ -201,7 +188,7 @@ namespace Math {
 		return out_mat;
 	}
 
-	Matrix4x4 Matrix_MakeIdentity()
+	Matrix4x4 MakeIdentityMatrix()
 	{
 		Matrix4x4 out_mat;
 		out_mat.mat[0][0] = 1.0f;
@@ -212,7 +199,7 @@ namespace Math {
 		return out_mat;
 	}
 
-	Matrix4x4 Matrix_MakeTranslation(float x, float y, float z)
+	Matrix4x4 MakeTranslationMatrix(float x, float y, float z)
 	{
 		Matrix4x4 out_mat;
 		out_mat.mat[0][0] = 1.0f;
@@ -240,6 +227,7 @@ namespace Math {
 		return out_mat;
 	}
 
+	// Rotate
 	Matrix4x4 MakeRotationMatrixX(float in_thetaRad) {
 		Matrix4x4 out_mat;
 		out_mat.mat[0][0] = 1.0f;
@@ -273,9 +261,24 @@ namespace Math {
 		return out_mat;
 	}
 
-	////////////////////////////// Other ////////////////////////////////////
+	////////////////////////////// Traingle Math ////////////////////////////////////
 
-	int Triangle_ClipAgainstPlane(Vector3 plane_p, Vector3 plane_n, Triangle& in_tri, Triangle& out_tri1, Triangle& out_tri2) {
+	Triangle MultiplyMatrixTriangle(const Matrix4x4& in_mat, const Triangle& in_tri) {
+		Triangle out_tri;
+
+		out_tri.points[0] = MultiplyMatrixVector(in_mat, in_tri.points[0]);
+		out_tri.points[1] = MultiplyMatrixVector(in_mat, in_tri.points[1]);
+		out_tri.points[2] = MultiplyMatrixVector(in_mat, in_tri.points[2]);
+		out_tri.coords[0] = in_tri.coords[0];
+		out_tri.coords[1] = in_tri.coords[1];
+		out_tri.coords[2] = in_tri.coords[2];
+		out_tri.color = in_tri.color;
+
+		return out_tri;
+	}
+
+	// Clipping
+	int TriangleClipAgainstPlane(Vector3 plane_p, Vector3 plane_n, Triangle& in_tri, Triangle& out_tri1, Triangle& out_tri2) {
 		//Keep shading
 		out_tri1.color = in_tri.color;
 		out_tri2.color = in_tri.color;
@@ -354,12 +357,12 @@ namespace Math {
 			// but the two new points are at the locations where the 
 			// original sides of the triangle (lines) intersect with the plane
 			float t;
-			out_tri1.points[1] = Vector_IntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[0], t);
+			out_tri1.points[1] = VectorIntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[0], t);
 			out_tri1.coords[1].x = t * (outside_tex[0]->x - inside_tex[0]->x) + inside_tex[0]->x;
 			out_tri1.coords[1].y = t * (outside_tex[0]->y - inside_tex[0]->y) + inside_tex[0]->y;
 			out_tri1.coords[1].w = t * (outside_tex[0]->w - inside_tex[0]->w) + inside_tex[0]->w;
 
-			out_tri1.points[2] = Vector_IntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[1], t);
+			out_tri1.points[2] = VectorIntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[1], t);
 			out_tri1.coords[2].x = t * (outside_tex[1]->x - inside_tex[0]->x) + inside_tex[0]->x;
 			out_tri1.coords[2].y = t * (outside_tex[1]->y - inside_tex[0]->y) + inside_tex[0]->y;
 			out_tri1.coords[2].w = t * (outside_tex[1]->w - inside_tex[0]->w) + inside_tex[0]->w;
@@ -387,7 +390,7 @@ namespace Math {
 			out_tri1.coords[1] = *inside_tex[1];
 
 			float t;
-			out_tri1.points[2] = Vector_IntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[0], t);
+			out_tri1.points[2] = VectorIntersectPlane(plane_p, plane_n, *inside_points[0], *outside_points[0], t);
 			out_tri1.coords[2].x = t * (outside_tex[0]->x - inside_tex[0]->x) + inside_tex[0]->x;
 			out_tri1.coords[2].y = t * (outside_tex[0]->y - inside_tex[0]->y) + inside_tex[0]->y;
 			out_tri1.coords[2].w = t * (outside_tex[0]->w - inside_tex[0]->w) + inside_tex[0]->w;
@@ -399,7 +402,7 @@ namespace Math {
 			out_tri2.coords[0] = *inside_tex[1];
 			out_tri2.points[1] = out_tri1.points[2];
 			out_tri2.coords[1] = out_tri1.coords[2];
-			out_tri2.points[2] = Vector_IntersectPlane(plane_p, plane_n, *inside_points[1], *outside_points[0], t);
+			out_tri2.points[2] = VectorIntersectPlane(plane_p, plane_n, *inside_points[1], *outside_points[0], t);
 			out_tri2.coords[2].x = t * (outside_tex[0]->x - inside_tex[1]->x) + inside_tex[1]->x;
 			out_tri2.coords[2].y = t * (outside_tex[0]->y - inside_tex[1]->y) + inside_tex[1]->y;
 			out_tri2.coords[2].w = t * (outside_tex[0]->w - inside_tex[1]->w) + inside_tex[1]->w;
@@ -407,14 +410,14 @@ namespace Math {
 		}
 	}
 
-	Vector3 Vector_IntersectPlane(Vector3& plane_p, Vector3& plane_n, Vector3& lineStart, Vector3& lineEnd, float& t) {
+	Vector3 VectorIntersectPlane(Vector3& plane_p, Vector3& plane_n, Vector3& lineStart, Vector3& lineEnd, float& t) {
 		plane_n = Normalize(plane_n);
 		float plane_d = -DotProduct(plane_n, plane_p);
 		float ad = DotProduct(lineStart, plane_n);
 		float bd = DotProduct(lineEnd, plane_n);
 		t = (-plane_d - ad) / (bd - ad);
-		Vector3 lineStartToEnd = Vector_Sub(lineEnd, lineStart);
-		Vector3 lineToIntersect = Vector_Mul(lineStartToEnd, t);
-		return Vector_Add(lineStart, lineToIntersect);
+		Vector3 lineStartToEnd = VectorSub(lineEnd, lineStart);
+		Vector3 lineToIntersect = VectorMul(lineStartToEnd, t);
+		return VectorAdd(lineStart, lineToIntersect);
 	}
 }

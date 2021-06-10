@@ -21,7 +21,7 @@ void Snake::Destroy() {
 void Snake::Update(const float in_dt) {
 	Entity::Update(in_dt);
 
-	m_canMove = m_movementTimer >= 1000.0f;
+	m_movementTimer += in_dt;
 };
 
 void Snake::Draw(std::shared_ptr<Scene> in_scene) {
